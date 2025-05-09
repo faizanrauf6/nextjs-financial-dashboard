@@ -16,6 +16,14 @@ export type State = {
     };
     message?: string | null;
 };
+
+export type LoginState = {
+  errors?: {
+    email?: string[];
+    password?: string[];
+  };
+  message?: string | null;
+};
  
 const FormSchema = z.object({
   id: z.string(),
@@ -24,9 +32,15 @@ const FormSchema = z.object({
   status: z.enum(['pending', 'paid'], { invalid_type_error: 'Please select an invoice status.' }),
   date: z.string(),
 });
+
+const LoginSchema = z.object({
+  email: z.string().min(1, 'Email is required').email('Enter a valid email'),
+  password: z.string().min(1, 'Password is required').min(6, 'Password must be at least 6 characters'),
+});
  
 const CreateInvoice = FormSchema.omit({ id: true, date: true });
 const UpdateInvoice = FormSchema.omit({ id: true, date: true });
+
  
 // This function is used to create an invoice
 export async function createInvoice(prevState: State, formData: FormData) {
@@ -114,16 +128,32 @@ export async function deleteInvoice(id: string) {
 
 // This function is used to sign in a user
 export async function authenticate(
-  prevState: { message: string | null } | undefined,
+  prevState: LoginState,
   formData: FormData,
-) {
+): Promise<LoginState> {
+  const validatedFields = LoginSchema.safeParse({
+    email: formData.get('email'),
+    password: formData.get('password'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Missing or invalid fields. Please correct them.',
+    };
+  }
+
+  const { email, password } = validatedFields.data;
+  const redirectTo = formData.get('redirectTo')?.toString() || '/dashboard';
+
   try {
-    await signIn('credentials', formData);
-    return { message: null };
+    await signIn('credentials', { email, password, redirectTo });
+    return { message: null, errors: {} };
   } catch (error) {
     if (error instanceof AuthError) {
       return {
         message: 'Invalid credentials. Please try again.',
+        errors: {}, // ✅ Include this to match LoginState
       };
     }
     throw error;

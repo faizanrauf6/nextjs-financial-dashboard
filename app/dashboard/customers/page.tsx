@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import { lusitana } from '@/app/ui/fonts';
 import { Suspense } from 'react';
 import Table from '@/app/ui/customers/table';
 import { CustomersTableSkeleton } from '@/app/ui/skeletons';

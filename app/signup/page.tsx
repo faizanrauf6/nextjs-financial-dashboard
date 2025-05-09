@@ -1,14 +1,14 @@
 import AcmeLogo from '@/app/ui/acme-logo';
-import LoginForm from '@/app/ui/login-form';
+import SignupForm from '@/app/ui/signup-form';
 import { Suspense } from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
- 
+
 export const metadata: Metadata = {
-  title: 'Login',
+  title: 'Sign Up',
 };
- 
-export default function LoginPage() {
+
+export default function SignupPage() {
   return (
     <main className="flex items-center justify-center md:h-screen">
       <div className="relative mx-auto flex w-full max-w-[400px] flex-col space-y-2.5 p-4 md:-mt-32">
@@ -18,14 +18,14 @@ export default function LoginPage() {
           </div>
         </div>
         <Suspense>
-          <LoginForm />
+          <SignupForm />
         </Suspense>
-        {/* Signup button/link */}
+        {/* Back to login */}
         <div className="text-center">
           <p className="text-sm">
-            Don't have an account?{' '}
-            <Link className="font-medium text-blue-500 hover:underline" href="/signup">
-              Sign up
+            Already have an account?{' '}
+            <Link className="font-medium text-blue-500 hover:underline" href="/login">
+              Log in
             </Link>
           </p>
         </div>

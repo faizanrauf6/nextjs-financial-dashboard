@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import postgres from 'postgres';
 import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';
+import bcrypt from 'bcryptjs';
 
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
 
@@ -24,6 +25,12 @@ export type LoginState = {
   };
   message?: string | null;
 };
+
+export type SignupState = {
+  message: string | null;
+  errors: Partial<Record<'name' | 'email' | 'password', string[]>>;
+  redirectTo?: string;
+};
  
 const FormSchema = z.object({
   id: z.string(),
@@ -37,6 +44,13 @@ const LoginSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Enter a valid email'),
   password: z.string().min(1, 'Password is required').min(6, 'Password must be at least 6 characters'),
 });
+
+const SignUpSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+
  
 const CreateInvoice = FormSchema.omit({ id: true, date: true });
 const UpdateInvoice = FormSchema.omit({ id: true, date: true });
@@ -157,5 +171,56 @@ export async function authenticate(
       };
     }
     throw error;
+  }
+}
+
+export async function signUp(formData: FormData): Promise<SignupState> {
+  const validatedFields = SignUpSchema.safeParse({
+    name: formData.get('name'),
+    email: formData.get('email'),
+    password: formData.get('password'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Missing or invalid fields. Please correct them.',
+    };
+  }
+
+  const { name, email, password } = validatedFields.data;
+
+  try {
+    // Check if user already exists
+    const existing = await sql`SELECT * FROM users WHERE email = ${email}`;
+    if (existing.length > 0) {
+      return {
+        errors: {
+          email: ['Email is already in use.'],
+        },
+        message: 'User already exists with this email.',
+      };
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insert new user
+    await sql`
+      INSERT INTO users (name, email, password)
+      VALUES (${name}, ${email}, ${hashedPassword})
+    `;
+
+    return {
+      errors: {},
+      message: '',
+      redirectTo: '/login',
+    };
+  } catch (error) {
+    console.error('Signup error:', error);
+    return {
+      errors: {},
+      message: 'Something went wrong. Please try again.',
+    };
   }
 }

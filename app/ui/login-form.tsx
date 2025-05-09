@@ -41,6 +41,7 @@ export default function LoginForm() {
                 placeholder="Enter your email address"
                 className="peer block w-full rounded-md border border-gray-200 py-[9px] pl-10 text-sm outline-2 placeholder:text-gray-500"
                 aria-describedby="email-error"
+                disabled={isPending}
               />
               <AtSymbolIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
             </div>
@@ -67,6 +68,7 @@ export default function LoginForm() {
                 minLength={6}
                 className="peer block w-full rounded-md border border-gray-200 py-[9px] pl-10 text-sm outline-2 placeholder:text-gray-500"
                 aria-describedby="password-error"
+                disabled={isPending}
               />
               <KeyIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
             </div>
@@ -82,9 +84,21 @@ export default function LoginForm() {
 
         <input type="hidden" name="redirectTo" value={callbackUrl} />
 
-        <Button className="mt-8 w-full" aria-disabled={isPending}>
-          Log in <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
-        </Button>
+        <Button className="mt-8 w-full" aria-disabled={isPending} disabled={isPending}>
+        {isPending ? (
+          <span className="flex items-center justify-center space-x-2">
+            <svg className="h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span>Log in...</span>
+          </span>
+        ) : (
+          <>
+            Log in <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
+          </>
+        )}
+      </Button>
 
         {/* Generic Error Message */}
         <div className="mt-5 flex items-center space-x-1">

@@ -50,12 +50,10 @@ const SignUpSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
 });
-
  
 const CreateInvoice = FormSchema.omit({ id: true, date: true });
 const UpdateInvoice = FormSchema.omit({ id: true, date: true });
 
- 
 // This function is used to create an invoice
 export async function createInvoice(prevState: State, formData: FormData) {
     // Validate form using Zod
@@ -136,8 +134,14 @@ export async function updateInvoice(
 
 // This function is used to delete an invoice
 export async function deleteInvoice(id: string) {
+  try {
     await sql`DELETE FROM invoices WHERE id = ${id}`;
-    revalidatePath('/dashboard/invoices');
+  } catch (error) {
+    console.error('Database Error:', error);
+    return { message: 'Database Error: Failed to Delete Invoice.' };
+  }
+  // Revalidate the cache for the invoices page
+  revalidatePath('/dashboard/invoices');
 }
 
 // This function is used to sign in a user

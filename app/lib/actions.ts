@@ -134,12 +134,7 @@ export async function updateInvoice(
 
 // This function is used to delete an invoice
 export async function deleteInvoice(id: string) {
-  try {
-    await sql`DELETE FROM invoices WHERE id = ${id}`;
-  } catch (error) {
-    console.error('Database Error:', error);
-    return { message: 'Database Error: Failed to Delete Invoice.' };
-  }
+  await sql`DELETE FROM invoices WHERE id = ${id}`;
   // Revalidate the cache for the invoices page
   revalidatePath('/dashboard/invoices');
 }
